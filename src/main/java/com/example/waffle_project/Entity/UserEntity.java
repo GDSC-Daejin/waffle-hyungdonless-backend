@@ -4,12 +4,16 @@ import com.example.waffle_project.Dto.UserDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Optional;
 
 @Entity
 @Getter
 @Setter
+@Table(name = "userinfo")
 public class UserEntity {
     @Id
     @Column(length = 255, unique = true)
@@ -41,4 +45,7 @@ public class UserEntity {
         return userDto;
     }
 
+    public Optional<UserEntity> orElse(Object o) {
+        return null;
+    }
 }
