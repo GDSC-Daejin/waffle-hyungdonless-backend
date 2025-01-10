@@ -85,4 +85,17 @@ public class Service {
 
         }
     }
+
+    @Transactional
+    public UserDto userUpdate(UserDto userDto){
+        UserEntity userEntity = userRepository.findByEmail(userDto.getEmail()); //email로 회원정보 조회
+        if(userEntity == null){
+            return null; //회원정보가 없을 경우
+        } else {
+            userDto.setPassword(hash.encode(userDto.getPassword())); //비밀번호 해쉬화
+            userRepository.save(userDto.toEntity()); //회원정보 업데이트
+            return userDto;
+        }
+
+    }
 }

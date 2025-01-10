@@ -13,7 +13,7 @@ public class UserController {
     private Service service;
 
     //회원가입
-    @PostMapping
+    @PostMapping("/signup")
     public ResponseEntity<?> userSignUp(@RequestBody UserDto userDto){
         if(service.saveUserInfo(userDto)){
             return ResponseEntity.ok(userDto); //회원가입 성공 시 userDto 반환
@@ -43,6 +43,17 @@ public class UserController {
             return ResponseEntity.ok(userDto); //회원정보가 있을 경우 dto반환
         }
 
+    }
+
+    //특정회원정보업데이트
+    @PutMapping("/{email}")
+    public ResponseEntity<?> userUpdate(@PathVariable String email, @RequestBody UserDto userDto){
+        UserDto userDto1 = service.userUpdate(userDto); //email로 회원정보 업데이트 / dto 반환
+        if(userDto1 == null){
+            return ResponseEntity.badRequest().body(null);
+        } else {
+            return ResponseEntity.ok(userDto1); //회원정보 업데이트
+        }
     }
 
     //특정회원삭제
