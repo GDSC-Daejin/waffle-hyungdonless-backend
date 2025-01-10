@@ -54,11 +54,11 @@ public class Service {
     }
 
     public Boolean userLogin(UserDto userDto){
-        UserDto userDto1 = userRepository.findByEmail(userDto.getEmail()).toDto();
-        if(userDto1 == null){ //해당 이메일로 조회된 회원이 없다면
+        UserEntity userEntity = userRepository.findByEmail(userDto.getEmail());
+        if(userEntity == null){ //해당 이메일로 조회된 회원이 없다면
             return false;
         } else {
-            if(hash.encode(userDto.getPassword()).equals(userDto1.getPassword())){ //패스워드가 일치한다면
+            if(hash.matches(userDto.getPassword(), userEntity.getPassword())){ //패스워드가 일치한다면
                 return true;
             } else { //패스워드가 일치하지 않는다면
                 return false;
