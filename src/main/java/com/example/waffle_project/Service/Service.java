@@ -3,12 +3,14 @@ package com.example.waffle_project.Service;
 import com.example.waffle_project.Dto.UserDto;
 import com.example.waffle_project.Entity.UserEntity;
 import com.example.waffle_project.Repository.UserRepository;
+import com.example.waffle_project.Utility.Utility;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +22,10 @@ import org.slf4j.LoggerFactory;
 public class Service {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private Utility utility;
+
     private BCryptPasswordEncoder hash = new BCryptPasswordEncoder();//비밀번호 저장을 위한 해쉬화 객체
 
     public Boolean saveUserInfo(UserDto userDto){
@@ -55,16 +61,37 @@ public class Service {
         }
     }
 
-    public Boolean userLogin(UserDto userDto){
+    public String userLogin(UserDto userDto){
         UserEntity userEntity = userRepository.findByEmail(userDto.getEmail());
         if(userEntity == null){ //해당 이메일로 조회된 회원이 없다면
-            return false;
+            return null;
         } else {
             if(hash.matches(userDto.getPassword(), userEntity.getPassword())){ //패스워드가 일치한다면
-                return true;
+                String token;
+                //token 발급 및 반환 로직
+                String header = utility.encrypt(utility.getToday().plusDays(1).toString(),utility.getEncryptKey()); //만료일자는 오늘로부터 1일
+                String payload = utility.encrypt(userDto.getEmail(), utility.getEncryptKey()); //이메일을 암호화한 값
+                String signature = hash.encode(header + "/" + payload + "/" + utility.getTokenKey()); //header, payload, secretKey를 합쳐서 해쉬화
+                token = header + "." + payload + "." + signature; //header, payload, signature를 합쳐서 토큰 생성
+                return token;
             } else { //패스워드가 일치하지 않는다면
-                return false;
+                return null;
             }
+        }
+    }
+
+    public Boolean TokensIsValid(String token){ //토큰 유효성 검사
+        String[] parts = token.split("\\.", 3);
+        String header = utility.decrypt(parts[0], utility.getEncryptKey());
+        if(utility.getToday().isBefore(LocalDate.parse(header))){ //토큰이 만료되었다면
+            return false;
+        }
+        String payload = utility.decrypt(parts[1], utility.getEncryptKey());
+        String signature = parts[2];
+        if(hash.matches(header + "/" + payload + "/" + utility.getTokenKey(), signature)){
+            return true;
+        } else {
+            return false;
         }
     }
 

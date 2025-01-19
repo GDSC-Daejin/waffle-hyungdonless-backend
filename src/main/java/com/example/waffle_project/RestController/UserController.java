@@ -27,8 +27,9 @@ public class UserController {
     //로그인
     @PostMapping("/login")
     public ResponseEntity<?> userLogin(@RequestBody UserDto userDto){
-        if(service.userLogin(userDto)){
-            return ResponseEntity.ok(userDto); //로그인 성공 시 userDto 반환
+        String token = service.userLogin(userDto); //로그인 성공 시 token 반환
+        if(token != null){
+            return ResponseEntity.ok(token); //로그인 성공 시 token 반환
         } else {
             return ResponseEntity.badRequest().body(userDto); //로그인 실패 시 userDto 반환
         }
