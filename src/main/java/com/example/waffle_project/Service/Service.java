@@ -23,9 +23,11 @@ public class Service {
     private BCryptPasswordEncoder hash = new BCryptPasswordEncoder();//비밀번호 저장을 위한 해쉬화 객체
 
     public Boolean saveUserInfo(UserDto userDto){
-        userDto.setPassword(hash.encode(userDto.getPassword())); //비밀번호 해쉬화
-
         try{
+            if(userRepository.findByEmail(userDto.getEmail()) != null){ //회원이 이미 존재할 경우 예외처리
+                return false;
+            }
+            userDto.setPassword(hash.encode(userDto.getPassword())); //비밀번호 해쉬화
             UserEntity userEntity = userRepository.save(userDto.toEntity());//회원정보 저장
             return true;
         } catch (Exception e){

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "*")
 public class UserController {
     @Autowired
     private Service service;
@@ -76,6 +77,7 @@ public class UserController {
             return ResponseEntity.ok(service.userFindAll()); //회원정보가 있을 경우 dto리스트 반환
         }
     }
+
 
 
 
