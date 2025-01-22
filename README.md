@@ -1,6 +1,6 @@
 # waffle-hyungdonless-backend
 
-sabujak api 서버입니다
+sabujak api 서버입니다
 
 ## 기술 스택
 
