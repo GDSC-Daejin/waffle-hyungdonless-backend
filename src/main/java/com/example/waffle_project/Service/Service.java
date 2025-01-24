@@ -3,10 +3,13 @@ package com.example.waffle_project.Service;
 import com.example.waffle_project.Dto.UserDto;
 import com.example.waffle_project.Entity.UserEntity;
 import com.example.waffle_project.Repository.UserRepository;
+import com.example.waffle_project.Utility.SmsUtil;
 import com.example.waffle_project.Utility.Utility;
+import jakarta.servlet.http.HttpSession;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,12 @@ public class Service {
 
     @Autowired
     private Utility utility;
+
+    @Autowired
+    private SmsUtil smsUtil;
+
+    @Autowired
+    private HttpSession session; //세션 객체
 
     private BCryptPasswordEncoder hash = new BCryptPasswordEncoder();//비밀번호 저장을 위한 해쉬화 객체
 
@@ -127,4 +136,25 @@ public class Service {
         }
 
     }
+
+    public ResponseEntity<?> sendSmsToFindEmail(UserDto userDto) { //메세지 보내는 부분
+        String name = userDto.getName();
+        //수신번호 형태에 맞춰 "-"을 ""로 변환
+        String phoneNum = userDto.getNumber().replaceAll("-","");
+
+        if(userRepository.findByEmail(userDto.getEmail()) != null){ //회원이 존재할 경우
+            return ResponseEntity.badRequest().body("이미 회원이 존재합니다.");
+        }
+
+        String verificationCode = smsUtil.generateRandomCode(); //인증코드 4자리 생성
+        session.setAttribute("code", verificationCode);
+        session.setAttribute("name", userDto.getName());
+        session.setAttribute("phoneNum", phoneNum);
+        session.setAttribute("email", userDto.getEmail());
+        //smsUtil.sendOne(phoneNum, verificationCode); //sms 전송 수행 코드 사용시 주석 해제
+
+        return ResponseEntity.ok("전송 성공");
+    }
+
+
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "User-Controller", description = "회원 관리 API")
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "*")
 public class UserController {
     @Autowired
     private Service service;
