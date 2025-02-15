@@ -15,17 +15,7 @@ public class SMSController {
     @Autowired
     private Service service;
 
-    @Operation(summary = "메세지 인증 코드 전송 api", description = "입력값으로 userdto를 받아 해당 유저의 전화번호로 4자리 인증코드 발송 " +
-            "\n/전송 실패 시 400에러 반환(ex:이미 해당 이메일로 회원이 존재하는 경우)" +
-            "\n/데이터 전송 예시 : " +
-            "\n {\n" +
-            "        \"email\": \"test12@gmal.com\",\n" +
-            "        \"password\": \"\",\n" +
-            "        \"name\": \"홍준표\",\n" +
-            "        \"birth\": \"\",\n" +
-            "        \"number\": \"010-5291-3807\",\n" +
-            "        \"nickname\": \"\"\n" +
-            "    }")
+    @Operation(summary = "메세지 인증 코드 전송 api", description = "해당 유저의 전화번호로 4자리 인증코드 발송 / email과 number값만 포함하여 호출하세요")
     @PostMapping("/send")
     public ResponseEntity<?> sendSMS(@RequestBody UserDto userDto){
         return service.sendSmsToFindEmail(userDto);

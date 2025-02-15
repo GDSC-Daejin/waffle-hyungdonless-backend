@@ -13,8 +13,8 @@ import java.util.Optional;
 @Entity
 @Getter
 @Setter
-@Table(name = "userinfo")
 public class UserEntity {
+
     @Id
     @Column(length = 255, unique = true)
     private String email;
