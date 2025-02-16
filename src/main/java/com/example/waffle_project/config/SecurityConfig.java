@@ -69,7 +69,10 @@ public class SecurityConfig {
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-
+        http //콘텐츠 타입 보안 비활성화
+                .headers(headers -> headers
+                        .contentTypeOptions(content -> content.disable())  // Content-Type 제한 해제
+                );
 
 
 

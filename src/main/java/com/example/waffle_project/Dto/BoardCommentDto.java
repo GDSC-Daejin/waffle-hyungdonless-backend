@@ -9,7 +9,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BoardCommentDto {
-    private String writer; //작성자 이메일, pk
+    private Long id;
+    private String writer; //작성자 이메일
     private String nickname; //작성자 닉네임
     private String boardType; //게시판 타입
     private String content; //댓글 내용

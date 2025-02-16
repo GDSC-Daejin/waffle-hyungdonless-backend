@@ -1,9 +1,7 @@
 package com.example.waffle_project.Entity;
 
 import com.example.waffle_project.Dto.BoardCommentDto;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,8 +10,12 @@ import lombok.Setter;
 @Setter
 public class BoardCommentEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true)
+    private Long id;
+
     @Column(length = 255)
-    private String writer; //작성자 이메일, pk
+    private String writer; //작성자 이메일
 
     @Column(length = 255)
     private String nickname; //작성자 닉네임

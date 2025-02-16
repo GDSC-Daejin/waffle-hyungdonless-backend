@@ -40,7 +40,7 @@ public class BoardDto {
     @Schema(hidden = true)
     private String createDate; //작성일
 
-
+    @Schema(hidden = true)
     private String imageURL; //게시판 이미지 url
 
     public BoardEntity toEntity(){

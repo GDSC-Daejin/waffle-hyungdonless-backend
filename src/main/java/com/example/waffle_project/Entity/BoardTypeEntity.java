@@ -11,7 +11,7 @@ import lombok.Setter;
 public class BoardTypeEntity {
 
     @Id
-    @Column(length = 255)
+    @Column(length = 255, unique = true)
     private String boardType; //게시판 타입 (금융 = B001, 복지 = B002, 주거 = B003, 자기계발 = B004, 자유 = B005)
 
     @Column(length = 255)

@@ -11,7 +11,7 @@ import lombok.Setter;
 public class BoardEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(unique = true)
     private Long id;
 
     @Column(length = 255)
