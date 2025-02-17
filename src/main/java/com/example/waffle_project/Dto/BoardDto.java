@@ -3,6 +3,7 @@ package com.example.waffle_project.Dto;
 import com.example.waffle_project.Entity.BoardEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
+import kotlinx.serialization.descriptors.PrimitiveKind;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,6 +43,9 @@ public class BoardDto {
 
     @Schema(hidden = true)
     private String imageURL; //게시판 이미지 url
+
+    @Schema(hidden = true) //현재 유저가 해당 게시글에 좋아요를 눌렀는지 여부
+    private String isLike;
 
     public BoardEntity toEntity(){
         BoardEntity boardEntity = new BoardEntity();

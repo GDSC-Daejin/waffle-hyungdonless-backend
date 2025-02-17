@@ -1,6 +1,9 @@
 package com.example.waffle_project.Service;
 
 import com.example.waffle_project.Dto.BoardDto;
+import com.example.waffle_project.Dto.UserDto;
+import com.example.waffle_project.Entity.BoardEntity;
+import com.example.waffle_project.Entity.UserEntity;
 import com.example.waffle_project.Repository.*;
 import com.example.waffle_project.Utility.SmsUtil;
 import com.example.waffle_project.Utility.Utility;
@@ -17,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -91,6 +95,46 @@ public class BoardService {
         return ResponseEntity.ok(response);
     }
 
+    public ResponseEntity<?> getBoards_TYPE(String boardType){
+        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
+        List<BoardEntity> boardEntityList = boardRepository.findByType(boardType); //게시물 타입별 조회
+        List<BoardDto> boardDtoList;
+        if(boardEntityList.isEmpty()){
+            response.put("message", "[" + boardType + "] 해당 게시판에 게시물이 존재하지 않습니다.");
+            response.put("status", HttpStatus.OK.toString());
+            return ResponseEntity.ok(response);
+        } else {
+            boardDtoList = boardEntityList.stream().map(BoardEntity::toDto).toList();
 
+            for(BoardDto boardDto : boardDtoList) {
+                boardDto.setIsLike("false"); //좋아요 여부 초기화
+
+                //좋아요 여부 확인하는 로직
+            }
+
+            return ResponseEntity.ok(boardDtoList);
+        }
+    }
+
+    public ResponseEntity<?> getBoards_ALL(){
+        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
+        List<BoardEntity> boardEntityList = boardRepository.findAll(); //게시물 타입별 조회
+        List<BoardDto> boardDtoList;
+        if(boardEntityList.isEmpty()){
+            response.put("message", "게시판에 게시물이 존재하지 않습니다.");
+            response.put("status", HttpStatus.OK.toString());
+            return ResponseEntity.ok(response);
+        } else {
+            boardDtoList = boardEntityList.stream().map(BoardEntity::toDto).toList();
+
+            for(BoardDto boardDto : boardDtoList) {
+                boardDto.setIsLike("false"); //좋아요 여부 초기화
+
+                //좋아요 여부 확인하는 로직
+            }
+
+            return ResponseEntity.ok(boardDtoList);
+        }
+    }
 
 }

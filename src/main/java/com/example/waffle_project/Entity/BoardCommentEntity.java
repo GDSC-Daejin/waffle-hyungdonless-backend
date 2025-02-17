@@ -21,7 +21,7 @@ public class BoardCommentEntity {
     private String nickname; //작성자 닉네임
 
     @Column(length = 255)
-    private String boardType; //게시판 타입
+    private Long boardId; //게시글 번호
 
     @Column(length = 255)
     private String content; //댓글 내용
@@ -36,7 +36,7 @@ public class BoardCommentEntity {
         BoardCommentDto boardCommentDto = new BoardCommentDto();
         boardCommentDto.setWriter(this.writer);
         boardCommentDto.setNickname(this.nickname);
-        boardCommentDto.setBoardType(this.boardType);
+        boardCommentDto.setBoardId(this.boardId);
         boardCommentDto.setContent(this.content);
         boardCommentDto.setLikeCount(this.likeCount);
         boardCommentDto.setCreateDate(this.createDate);

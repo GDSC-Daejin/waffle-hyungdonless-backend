@@ -40,15 +40,21 @@ public class BoardController {
     }
 
     @Operation(summary = "게시글 전체 조회", description = "게시판 상관 없이, 등록된 모든 게시글을 조회함")
-    @GetMapping
+    @GetMapping("/boards")
     public ResponseEntity<?> getBoard(){
-        return null;
+        return boardService.getBoards_ALL();
     }
 
-    @Operation(summary = "게시글 전체 조회(게시판별)", description = "게시판별로 등록된 모든 게시글을 조회함")
-    @GetMapping("/{boardId}")
-    public ResponseEntity<?> getBoardId(@PathVariable Long boardId){
-        return null;
+    @Operation(summary = "게시글 전체 조회(게시판별)", description =
+            "(b001 = 금융) "+
+            "(b002 = 복지) "+
+            "(b003 = 주거) "+
+            "(b004 = 자기계발) "+
+            "(b005 = 자유) "+
+            "(b006 = q&a) ")
+    @GetMapping("/boards/{boardType}")
+    public ResponseEntity<?> getBoards_TYPE(@PathVariable String boardType) {
+        return boardService.getBoards_TYPE(boardType);
     }
 
 
