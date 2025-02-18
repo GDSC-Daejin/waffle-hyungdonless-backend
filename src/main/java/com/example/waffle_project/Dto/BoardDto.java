@@ -27,7 +27,10 @@ public class BoardDto {
     private String category; //게시판 내 카테고리
 
     @Schema(example = "닉네임")
-    private String writer; //작성자 닉네임
+    private String nickname; //작성자 닉네임
+
+    @Schema(example = "test123@gmail.com")
+    private String email; //작성자 이메일
 
     @Schema(hidden = true)
     private Long view; //조회수
@@ -54,7 +57,8 @@ public class BoardDto {
         boardEntity.setContent(this.content);
         boardEntity.setBoardType(this.boardType);
         boardEntity.setCategory(this.category);
-        boardEntity.setWriter(this.writer);
+        boardEntity.setNickname(this.nickname);
+        boardEntity.setEmail(this.email);
         boardEntity.setView(this.view);
         boardEntity.setCommentCount(this.commentCount);
         boardEntity.setLikeCount(this.likeCount);

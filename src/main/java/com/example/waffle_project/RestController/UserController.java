@@ -20,12 +20,7 @@ public class UserController {
     @Operation(summary = "회원가입", description = "유저 정보를 등록하고 성공 시 userDto 반환")
     @PostMapping("/signup")
     public ResponseEntity<?> userSignUp(@RequestBody UserDto userDto){
-        if(service.saveUserInfo(userDto)){
-            return ResponseEntity.ok(userDto); //회원가입 성공 시 userDto 반환
-        }
-        else{
-            return ResponseEntity.badRequest().body(userDto); //회원가입 실패 시 userDto 반환
-        }
+        return service.saveUserInfo(userDto); //회원가입
     }
 
     //로그인
@@ -60,11 +55,7 @@ public class UserController {
     @Operation(summary = "모든회원조회", description = "모든 회원의 정보를 조회하고 성공 시 userDto 리스트 반환")
     @GetMapping
     public ResponseEntity<?> userFindAll(){
-        if(service.userFindAll() == null){
-            return ResponseEntity.badRequest().build(); //회원정보가 없을 경우
-        } else {
-            return ResponseEntity.ok(service.userFindAll()); //회원정보가 있을 경우 dto리스트 반환
-        }
+        return service.userFindAll(); //회원정보가 있을 경우 dto리스트 반환
     }
 
 

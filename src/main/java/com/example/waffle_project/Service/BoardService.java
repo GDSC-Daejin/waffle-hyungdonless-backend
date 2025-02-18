@@ -1,8 +1,8 @@
 package com.example.waffle_project.Service;
 
-import com.example.waffle_project.Dto.BoardDto;
-import com.example.waffle_project.Dto.UserDto;
+import com.example.waffle_project.Dto.*;
 import com.example.waffle_project.Entity.BoardEntity;
+import com.example.waffle_project.Entity.BoardIsLikeEntity;
 import com.example.waffle_project.Entity.UserEntity;
 import com.example.waffle_project.Repository.*;
 import com.example.waffle_project.Utility.SmsUtil;
@@ -39,6 +39,12 @@ public class BoardService {
 
     @Autowired
     private ChatBotMessageRepository chatBotMessageRepository;
+
+    @Autowired
+    private BoardIsLikeRepository boardIsLikeRepository;
+
+    @Autowired
+    private CommentIsLikeRepository commentIsLikeRepository;
 
     @Autowired
     private Utility utility;
@@ -99,6 +105,17 @@ public class BoardService {
         Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         List<BoardEntity> boardEntityList = boardRepository.findByType(boardType); //게시물 타입별 조회
         List<BoardDto> boardDtoList;
+        BoardIsLikeEntity boardIsLikeEntity;
+
+        String userEmail;
+        try { //비로그인 상태 예외처리
+            System.out.println("로그인 상태");
+            userEmail = session.getAttribute("USER_EMAIL").toString();
+        } catch (Exception e){
+            System.out.println("비로그인 상태");
+            userEmail = "비로그인 상태";
+        }
+
         if(boardEntityList.isEmpty()){
             response.put("message", "[" + boardType + "] 해당 게시판에 게시물이 존재하지 않습니다.");
             response.put("status", HttpStatus.OK.toString());
@@ -107,9 +124,12 @@ public class BoardService {
             boardDtoList = boardEntityList.stream().map(BoardEntity::toDto).toList();
 
             for(BoardDto boardDto : boardDtoList) {
-                boardDto.setIsLike("false"); //좋아요 여부 초기화
-
-                //좋아요 여부 확인하는 로직
+                boardIsLikeEntity = boardIsLikeRepository.findByBoardIdAndEmail(boardDto.getId(), userEmail);
+                if(boardIsLikeEntity == null){ //해당 게시물에 좋아요를 누른적이 없는 경우
+                    boardDto.setIsLike("false");
+                } else {
+                    boardDto.setIsLike("true");
+                }
             }
 
             return ResponseEntity.ok(boardDtoList);
@@ -120,6 +140,18 @@ public class BoardService {
         Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         List<BoardEntity> boardEntityList = boardRepository.findAll(); //게시물 타입별 조회
         List<BoardDto> boardDtoList;
+        BoardIsLikeEntity boardIsLikeEntity;
+
+        String userEmail;
+        try { //비로그인 상태 예외처리
+            System.out.println("로그인 상태");
+            userEmail = session.getAttribute("USER_EMAIL").toString();
+        } catch (Exception e){
+            System.out.println("비로그인 상태");
+            userEmail = "비로그인 상태";
+        }
+
+
         if(boardEntityList.isEmpty()){
             response.put("message", "게시판에 게시물이 존재하지 않습니다.");
             response.put("status", HttpStatus.OK.toString());
@@ -128,12 +160,93 @@ public class BoardService {
             boardDtoList = boardEntityList.stream().map(BoardEntity::toDto).toList();
 
             for(BoardDto boardDto : boardDtoList) {
-                boardDto.setIsLike("false"); //좋아요 여부 초기화
-
                 //좋아요 여부 확인하는 로직
+                boardIsLikeEntity = boardIsLikeRepository.findByBoardIdAndEmail(boardDto.getId(), userEmail);
+                if(boardIsLikeEntity == null){ //해당 게시물에 좋아요를 누른적이 없는 경우
+                    boardDto.setIsLike("false");
+                } else {
+                    boardDto.setIsLike("true");
+                }
             }
 
-            return ResponseEntity.ok(boardDtoList);
+            return ResponseEntity.ok(ResponseDto.response(HttpStatus.OK, "게시물 조회 성공", boardDtoList));
+        }
+    }
+
+    public ResponseEntity<?> getBoard(Long id){
+        BoardEntity boardEntity = boardRepository.findById(id).orElse(null);
+        BoardIsLikeEntity boardIsLikeEntity;
+
+        String userEmail;
+        try { //비로그인 상태 예외처리
+            userEmail = session.getAttribute("USER_EMAIL").toString();
+            System.out.println("로그인 상태 : " + userEmail);
+        } catch (Exception e){
+            System.out.println("비로그인 상태");
+            userEmail = "비로그인 상태";
+        }
+
+        if(boardEntity == null){//아이디로 조회된 게시물이 없을 때
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "게시물이 존재하지 않습니다", null));
+        } else {
+            System.out.println("boardIsLikeEntity : " + id);
+            System.out.println("boardIsLikeEntity : " + userEmail);
+            boardIsLikeEntity = boardIsLikeRepository.findByBoardIdAndEmail(id, userEmail);
+            BoardDto boardDto = boardEntity.toDto();
+            if(boardIsLikeEntity == null){ //해당 게시물에 좋아요를 누른적이 없는 경우
+                boardDto.setIsLike("false");
+            } else {
+                boardDto.setIsLike("true");
+            }
+            return ResponseEntity
+                    .ok(ResponseDto.response(HttpStatus.OK, "게시물 조회 성공", boardDto));
+
+        }
+    }
+
+    public ResponseEntity<?> IsLikeBoard(BoardIsLikeDto boardIsLikeDto){
+        try { //비로그인 상태 예외처리
+            session.getAttribute("USER_EMAIL").toString();
+            System.out.println("[IsLikeBoard]로그인 상태");
+        } catch (Exception e){
+            System.out.println("[IsLikeBoard]비로그인 상태");
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "로그인이 필요한 서비스입니다", null));
+        }
+
+
+        //해당 유저가 이미 좋아요를 눌렀는지 아닌지 판단하는 로직
+        BoardIsLikeEntity boardIsLikeEntity;
+        String userEmail = session.getAttribute("USER_EMAIL").toString();
+
+        boardIsLikeEntity = boardIsLikeRepository.findByBoardIdAndEmail(boardIsLikeDto.getBoardId(), userEmail);
+
+        if(boardIsLikeEntity != null){ //이미 좋아요를 눌렀을 경우
+            boardIsLikeRepository.DeleteByBoardIdAndEmail(boardIsLikeDto.getBoardId(), userEmail); //좋아요 취소
+            return ResponseEntity.ok()
+                    .body(ResponseDto.response(HttpStatus.OK, "게시판 좋아요 삭제에 성공하였습니다", null));
+        }
+
+        try{
+            boardIsLikeRepository.save(boardIsLikeDto.toEntity());
+            return ResponseEntity.ok()
+                    .body(ResponseDto.response(HttpStatus.OK, "게시판 좋아요 등록에 성공하였습니다", null));
+        } catch (Exception e) {
+            System.out.println("오류 메세지 : " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "게시판 좋아요 등록에 실패하였습니다", null));
+        }
+    }
+
+    public ResponseEntity<?> IsLikeComment(CommentIsLikeDto commentIsLikeDto){
+        try{
+            commentIsLikeRepository.save(commentIsLikeDto.toEntity());
+            return ResponseEntity.ok()
+                    .body(ResponseDto.response(HttpStatus.OK, "댓글 좋아요 등록에 성공하였습니다", commentIsLikeDto));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "댓글 좋아요 등록에 실패하였습니다", null));
         }
     }
 

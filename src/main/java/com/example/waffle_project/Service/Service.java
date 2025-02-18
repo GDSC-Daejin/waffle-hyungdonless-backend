@@ -2,6 +2,7 @@ package com.example.waffle_project.Service;
 
 import ch.qos.logback.core.util.StringUtil;
 import com.example.waffle_project.Dto.ChatBotMessage;
+import com.example.waffle_project.Dto.ResponseDto;
 import com.example.waffle_project.Dto.UserDto;
 import com.example.waffle_project.Entity.ChatBotMessageEntity;
 import com.example.waffle_project.Entity.UserEntity;
@@ -60,49 +61,46 @@ public class Service {
         this.chatModel = chatModel;
     }
 
-    public Boolean saveUserInfo(UserDto userDto){
+    public ResponseEntity<?> saveUserInfo(UserDto userDto){
         try{
             if(userRepository.findByEmail(userDto.getEmail()) != null){ //회원이 이미 존재할 경우 예외처리
-                return false;
+                return ResponseEntity.badRequest()
+                        .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "이미 존재하는 회원입니다.", null));
             }
             userDto.setPassword(hash.encode(userDto.getPassword())); //비밀번호 해쉬화
             UserEntity userEntity = userRepository.save(userDto.toEntity());//회원정보 저장
-            return true;
+            return ResponseEntity.ok(ResponseDto.response(HttpStatus.OK, "회원가입 성공", userEntity.toDto()));
         } catch (Exception e){
-            return false;
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, e.getMessage(), null));
         }
 
     }
 
     public ResponseEntity<?> userFind(String email) {
-        Map<String, String> response = new HashMap<>();
         UserEntity userEntity = userRepository.findByEmail(email); //email로 회원정보 조회
         if (userEntity == null) { //회원정보가 없을 경우
-            response.put("error", "해당 이메일로 조회된 유저가 없습니다.");
-            response.put("status", HttpStatus.BAD_REQUEST.toString());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(ResponseDto.response(HttpStatus.BAD_REQUEST, "조회된 데이터가 없습니다.", null));
         } else { //회원정보가 있을 경우
-            return ResponseEntity.ok(userEntity.toDto());
+            return ResponseEntity.ok(ResponseDto.response(HttpStatus.OK, "조회 성공", userEntity.toDto()));
         }
     }
 
-    public List<UserDto> userFindAll(){
+    public ResponseEntity<?> userFindAll(){
         List<UserEntity> userEntityList = userRepository.findAll(); //모든 회원정보 조회
         if(userEntityList.isEmpty()){//회원정보가 없을 경우
-            return null;
+            return ResponseEntity.badRequest().body(ResponseDto.response(HttpStatus.BAD_REQUEST, "조회된 데이터가 없습니다.", null));
         } else { //회원정보가 존재할 경우
             List<UserDto> userDtoList = userEntityList.stream().map(UserEntity::toDto).toList();//엔티티 리스트를 dto리스트로 변환
-            return userDtoList;
+            return ResponseEntity.ok(ResponseDto.response(HttpStatus.OK, "조회 성공", userDtoList));
         }
     }
 
     public ResponseEntity<?> userLogin(UserDto userDto, HttpServletRequest request){
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         UserEntity userEntity = userRepository.findByEmail(userDto.getEmail());
         if(userEntity == null){ //해당 이메일로 조회된 회원이 없다면
-            response.put("error", "해당 이메일로 조회된 회원이 없습니다.");
-            response.put("status", HttpStatus.BAD_REQUEST.toString());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "해당 이메일로 조회된 회원이 없습니다.", null));
         } else {
             if(hash.matches(userDto.getPassword(), userEntity.getPassword())){ //패스워드가 일치한다면
                 String token;
@@ -111,20 +109,16 @@ public class Service {
                 String payload = utility.encrypt(userDto.getEmail(), utility.getEncryptKey()); //이메일을 암호화한 값
                 String signature = hash.encode(header + "/" + payload + "/" + utility.getTokenKey()); //header, payload, secretKey를 합쳐서 해쉬화
                 token = header + "." + payload + "." + signature; //header, payload, signature를 합쳐서 토큰 생성
-                response.put("token", token);
-                response.put("status", HttpStatus.OK.toString());
-
                 //로그인 성공시 세션에 유저의 ip와 email 저장
                 session.setAttribute("USER_IP", utility.getClientIpv4(request));
                 session.setAttribute("USER_EMAIL", userDto.getEmail());
-//                System.out.println("로그인 성공! 세션에 저장된 이메일 : " + session.getAttribute("USER_EMAIL"));
-//                System.out.println("로그인 성공! 세션에 저장된 IP : " + session.getAttribute("USER_IP"));
+                System.out.println("세션에 이메일 등록됨 : " + session.getAttribute("USER_EMAIL"));
 
-                return ResponseEntity.ok(response);
+                return ResponseEntity
+                        .ok(ResponseDto.response(HttpStatus.OK, "로그인 성공", token));
             } else { //패스워드가 일치하지 않는다면
-                response.put("error", "비밀번호가 일치하지 않습니다.");
-                response.put("status", HttpStatus.UNAUTHORIZED.toString());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ResponseDto.response(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.", null));
             }
         }
     }
@@ -156,50 +150,46 @@ public class Service {
 
     @Transactional
     public ResponseEntity<?> userDelete(String email) {
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         UserEntity userEntity = userRepository.findByEmail(email); //email로 회원정보 조회
 
         if (userEntity == null) {//회원정보가 없을 경우
-            response.put("error", "해당 이메일로 조회된 유저가 없습니다.");
-            response.put("status", HttpStatus.BAD_REQUEST.toString());
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "해당 이메일로 조회된 유저가 없습니다.", null));
         } else { //회원정보가 있을 경우
             try{
                 userRepository.deleteByEmail(email); //해당 이메일로 회원정보 삭제
-                return ResponseEntity.ok(userEntity.toDto());
+                return ResponseEntity
+                        .ok(ResponseDto.response(HttpStatus.OK, "회원정보 삭제 성공", userEntity.toDto()));
             } catch (Exception e) {//삭제에 실패했을 경우
-                response.put("error", e.getMessage());
-                response.put("status", HttpStatus.BAD_REQUEST.toString());
-                return ResponseEntity.badRequest().body(response);
+                return ResponseEntity.badRequest().body(ResponseDto.response(HttpStatus.BAD_REQUEST, e.getMessage(), null));
             }
         }
-        return ResponseEntity.badRequest().body(response);
     }
 
     @Transactional
     public ResponseEntity<?> userUpdate(UserDto userDto){
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         UserEntity userEntity = userRepository.findByEmail(userDto.getEmail()); //email로 회원정보 조회
         if(userEntity == null){//회원정보가 없을 경우
-            response.put("error", "해당 이메일로 조회된 회원이 없습니다.");
-            response.put("status", HttpStatus.BAD_REQUEST.toString());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "해당 이메일로 조회된 회원이 없습니다.", null));
         } else {
             userDto.setPassword(hash.encode(userDto.getPassword())); //비밀번호 해쉬화
             userRepository.save(userDto.toEntity()); //회원정보 업데이트
-            return ResponseEntity.ok(userDto);
+            return ResponseEntity
+                    .ok(ResponseDto.response(HttpStatus.OK, "회원정보 업데이트 성공", userDto));
         }
 
     }
 
     public ResponseEntity<?> sendSmsToFindEmail(UserDto userDto) {//메세지 보내는 부분
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         try {
             String name = userDto.getName();
             //수신번호 형태에 맞춰 "-"을 ""로 변환
             String phoneNum = userDto.getNumber().replaceAll("-", "");
 
             if (userRepository.findByEmail(userDto.getEmail()) != null) { //회원이 존재할 경우
-                return ResponseEntity.badRequest().body("이미 회원이 존재합니다.");
+                return ResponseEntity.badRequest()
+                        .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "이미 존재하는 회원입니다.", null));
             }
 
             String verificationCode = smsUtil.generateRandomCode(); //인증코드 4자리 생성
@@ -208,17 +198,10 @@ public class Service {
 //            session.setAttribute("phoneNum", phoneNum);
 //            session.setAttribute("email", userDto.getEmail());
             //smsUtil.sendOne(phoneNum, verificationCode); //sms 전송 수행 코드 사용시 주석 해제
-            response.put("verificationCode", verificationCode);
-            response.put("status", HttpStatus.OK.toString());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ResponseDto.response(HttpStatus.OK, "인증번호 전송 성공", verificationCode));
         } catch (Exception e) {
-            System.out.println("[sms/send Api error]\n에러 정보 : " + e.getMessage());
-
-            response.put("error", e.getMessage());
-            response.put("message", "number 값이 올바른지 확인하세요.");
-            response.put("status", HttpStatus.BAD_REQUEST.toString());
-
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                    .body(ResponseDto.response(HttpStatus.BAD_REQUEST, e.getMessage(), null));
         }
     }
 

@@ -1,6 +1,8 @@
 package com.example.waffle_project.RestController;
 
 import com.example.waffle_project.Dto.BoardDto;
+import com.example.waffle_project.Dto.BoardIsLikeDto;
+import com.example.waffle_project.Dto.CommentIsLikeDto;
 import com.example.waffle_project.Service.BoardService;
 import com.example.waffle_project.Service.Service;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,8 +37,8 @@ public class BoardController {
 
     @Operation(summary = "특정 게시글 조회", description = "게시글 id를 통해 특정 게시글을 조회함")
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBoard(Long id){
-        return null;
+    public ResponseEntity<?> getBoard(@PathVariable Long id){
+        return boardService.getBoard(id);
     }
 
     @Operation(summary = "게시글 전체 조회", description = "게시판 상관 없이, 등록된 모든 게시글을 조회함")
@@ -73,6 +75,27 @@ public class BoardController {
     ) {
         return boardService.createBoard(boardDto, file);
     }
+
+    @Operation(
+            summary = "게시판 하트 api",
+            description = "게시판 하트를 누르는 api"
+    )
+    @PostMapping("/board/like")
+    public ResponseEntity<?> IsLikeBoard(@RequestBody BoardIsLikeDto boardIsLikeDto){
+        return boardService.IsLikeBoard(boardIsLikeDto);
+    }
+
+    @Operation(
+            summary = "댓글 하트 api",
+            description = "댓글 하트를 누르는 api"
+    )
+    @PostMapping("/comment/like")
+    public ResponseEntity<?> IsLikeComment(@RequestBody CommentIsLikeDto commentIsLikeDto){
+        return boardService.IsLikeComment(commentIsLikeDto);
+    }
+
+
+
 
 
 }

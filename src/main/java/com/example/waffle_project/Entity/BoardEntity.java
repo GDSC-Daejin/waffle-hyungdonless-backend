@@ -27,7 +27,10 @@ public class BoardEntity {
     private String category; //게시판 내 카테고리
 
     @Column(length = 255)
-    private String writer; //작성자 닉네임
+    private String nickname; //작성자 닉네임
+
+    @Column(length = 255)
+    private String email; //작성자 이메일
 
     @Column
     private Long view; //조회수
@@ -51,7 +54,8 @@ public class BoardEntity {
         boardDto.setContent(this.content);
         boardDto.setBoardType(this.boardType);
         boardDto.setCategory(this.category);
-        boardDto.setWriter(this.writer);
+        boardDto.setNickname(this.nickname);
+        boardDto.setEmail(this.email);
         boardDto.setView(this.view);
         boardDto.setCommentCount(this.commentCount);
         boardDto.setLikeCount(this.likeCount);

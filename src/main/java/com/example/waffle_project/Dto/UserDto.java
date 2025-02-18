@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserDto {
-    @Schema(example = "test12@gmal.com")
+    @Schema(example = "test123@gmail.com")
     private String email;
 
     @Schema(example = "1234")
