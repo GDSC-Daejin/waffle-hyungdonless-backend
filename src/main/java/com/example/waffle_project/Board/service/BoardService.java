@@ -12,10 +12,13 @@ import com.example.waffle_project.Comment.repository.CommentIsLikeRepository;
 import com.example.waffle_project.Common.response.ResponseDto;
 import com.example.waffle_project.Board.domain.BoardEntity;
 import com.example.waffle_project.Board.domain.BoardIsLikeEntity;
+import com.example.waffle_project.Common.security.JwtTokenProvider;
 import com.example.waffle_project.Common.util.SmsUtil;
 import com.example.waffle_project.Common.util.Utility;
 import com.example.waffle_project.User.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -68,14 +71,15 @@ public class BoardService {
     @Autowired
     private ResourceLoader resourceLoader; //파일 저장을 위한 리소스 로더
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+
     public ResponseEntity<?> createBoard(BoardDto boardDto, MultipartFile file) {
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         String filePath;
-        System.out.println("createBoard 메서드 실행");
+        logger.info("createBoard 메서드 실행");
         if (file != null && !file.isEmpty()) //file이 존재할 경우 처리
         {
             try { //이미지파일 업로드 예외처리
-                System.out.println("이미지 처리 로직 실행");
+                logger.info("이미지 처리 로직 실행");
                 String fileName = file.getOriginalFilename(); //파일 이름
                 Resource resource = resourceLoader.getResource("classpath:static/images");
                 String uploadDir = resource.getFile().getAbsolutePath();
@@ -85,11 +89,8 @@ public class BoardService {
                 boardDto.setImageURL(filePath); //이미지 파일 경로 저장
 
             } catch (Exception e) {
-                response.put("error", e.getMessage());
-                response.put("message", "이미지 저장에 실패하였습니다.");
-                response.put("status", HttpStatus.BAD_REQUEST.toString());
-
-                return ResponseEntity.badRequest().body(response);
+                return ResponseEntity.badRequest()
+                        .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "이미지 저장에 실패하였습니다.", null));
             }
         } else{
             filePath = null; //이미지 파일이 없을 경우 null로 초기화
@@ -102,14 +103,11 @@ public class BoardService {
         boardDto.setView(0l); //게시물 등록 시 조회수 0으로 초기화
 
         boardRepository.save(boardDto.toEntity()); //게시물 저장
-
-        response.put("message", "게시물 등록에 성공하였습니다.");
-        response.put("status", HttpStatus.OK.toString());
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .ok(ResponseDto.response(HttpStatus.OK, "게시물 등록에 성공하였습니다", null));
     }
 
     public ResponseEntity<?> getBoards_TYPE(String boardType){
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         List<BoardEntity> boardEntityList = boardRepository.findByType(boardType); //게시물 타입별 조회
         List<BoardDto> boardDtoList;
         BoardIsLikeEntity boardIsLikeEntity;
@@ -124,9 +122,8 @@ public class BoardService {
         }
 
         if(boardEntityList.isEmpty()){
-            response.put("message", "[" + boardType + "] 해당 게시판에 게시물이 존재하지 않습니다.");
-            response.put("status", HttpStatus.OK.toString());
-            return ResponseEntity.ok(response);
+            return ResponseEntity
+                    .ok(ResponseDto.response(HttpStatus.OK, "[" + boardType + "] 해당 게시판에 게시물이 존재하지 않습니다.", null));
         } else {
             boardDtoList = boardEntityList.stream().map(BoardEntity::toDto).toList();
 
@@ -139,12 +136,12 @@ public class BoardService {
                 }
             }
 
-            return ResponseEntity.ok(boardDtoList);
+            return ResponseEntity
+                    .ok(ResponseDto.response(HttpStatus.OK, "게시물 조회 성공", boardDtoList));
         }
     }
 
     public ResponseEntity<?> getBoards_ALL(){
-        Map<String, String> response = new HashMap<>(); //json 응답을 위한 맵
         List<BoardEntity> boardEntityList = boardRepository.findAll(); //게시물 타입별 조회
         List<BoardDto> boardDtoList;
         BoardIsLikeEntity boardIsLikeEntity;
@@ -160,9 +157,8 @@ public class BoardService {
 
 
         if(boardEntityList.isEmpty()){
-            response.put("message", "게시판에 게시물이 존재하지 않습니다.");
-            response.put("status", HttpStatus.OK.toString());
-            return ResponseEntity.ok(response);
+            return ResponseEntity
+                    .ok(ResponseDto.response(HttpStatus.OK, "게시판에 게시물이 존재하지 않습니다", null));
         } else {
             boardDtoList = boardEntityList.stream().map(BoardEntity::toDto).toList();
 
@@ -176,7 +172,8 @@ public class BoardService {
                 }
             }
 
-            return ResponseEntity.ok(ResponseDto.response(HttpStatus.OK, "게시물 조회 성공", boardDtoList));
+            return ResponseEntity
+                    .ok(ResponseDto.response(HttpStatus.OK, "게시물 조회 성공", boardDtoList));
         }
     }
 
