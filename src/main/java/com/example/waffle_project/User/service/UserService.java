@@ -39,7 +39,7 @@ public class UserService {
     @Autowired
     private HttpSession session;
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
 
     public ResponseEntity<?> saveUserInfo(UserDto userDto){
@@ -90,7 +90,7 @@ public class UserService {
                 //로그인 성공시 세션에 유저의 ip와 email 저장
                 session.setAttribute("USER_IP", utility.getClientIpv4(request));
                 session.setAttribute("USER_EMAIL", userDto.getEmail());
-                logger.info("세션에 이메일 등록됨 : {}", session.getAttribute("USER_EMAIL"));
+                log.info("세션에 이메일 등록됨 : {}", session.getAttribute("USER_EMAIL"));
 
                 return ResponseEntity
                         .ok(ResponseDto.response(HttpStatus.OK, "로그인 성공", token));

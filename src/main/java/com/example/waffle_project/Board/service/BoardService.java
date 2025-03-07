@@ -71,15 +71,15 @@ public class BoardService {
     @Autowired
     private ResourceLoader resourceLoader; //파일 저장을 위한 리소스 로더
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(BoardService.class);
 
     public ResponseEntity<?> createBoard(BoardDto boardDto, MultipartFile file) {
         String filePath;
-        logger.info("createBoard 메서드 실행");
+        log.info("createBoard 메서드 실행");
         if (file != null && !file.isEmpty()) //file이 존재할 경우 처리
         {
             try { //이미지파일 업로드 예외처리
-                logger.info("이미지 처리 로직 실행");
+                log.info("이미지 처리 로직 실행");
                 String fileName = file.getOriginalFilename(); //파일 이름
                 Resource resource = resourceLoader.getResource("classpath:static/images");
                 String uploadDir = resource.getFile().getAbsolutePath();
@@ -114,10 +114,10 @@ public class BoardService {
 
         String userEmail;
         try { //비로그인 상태 예외처리
-            System.out.println("로그인 상태");
+            log.info("로그인 상태");
             userEmail = session.getAttribute("USER_EMAIL").toString();
         } catch (Exception e){
-            System.out.println("비로그인 상태");
+            log.info("비로그인 상태");
             userEmail = "비로그인 상태";
         }
 
@@ -148,10 +148,10 @@ public class BoardService {
 
         String userEmail;
         try { //비로그인 상태 예외처리
-            System.out.println("로그인 상태");
+            log.info("로그인 상태");
             userEmail = session.getAttribute("USER_EMAIL").toString();
         } catch (Exception e){
-            System.out.println("비로그인 상태");
+            log.info("비로그인 상태");
             userEmail = "비로그인 상태";
         }
 
@@ -184,9 +184,9 @@ public class BoardService {
         String userEmail;
         try { //비로그인 상태 예외처리
             userEmail = session.getAttribute("USER_EMAIL").toString();
-            System.out.println("로그인 상태 : " + userEmail);
+            log.info("로그인 상태 : " + userEmail);
         } catch (Exception e){
-            System.out.println("비로그인 상태");
+            log.info("비로그인 상태");
             userEmail = "비로그인 상태";
         }
 
@@ -194,8 +194,8 @@ public class BoardService {
             return ResponseEntity.badRequest()
                     .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "게시물이 존재하지 않습니다", null));
         } else {
-            System.out.println("boardIsLikeEntity : " + id);
-            System.out.println("boardIsLikeEntity : " + userEmail);
+            log.info("boardIsLikeEntity : " + id);
+            log.info("boardIsLikeEntity : " + userEmail);
             boardIsLikeEntity = boardIsLikeRepository.findByBoardIdAndEmail(id, userEmail);
             BoardDto boardDto = boardEntity.toDto();
             if(boardIsLikeEntity == null){ //해당 게시물에 좋아요를 누른적이 없는 경우
@@ -212,9 +212,9 @@ public class BoardService {
     public ResponseEntity<?> IsLikeBoard(BoardIsLikeDto boardIsLikeDto){
         try { //비로그인 상태 예외처리
             session.getAttribute("USER_EMAIL").toString();
-            System.out.println("[IsLikeBoard]로그인 상태");
+            log.info("[IsLikeBoard]로그인 상태");
         } catch (Exception e){
-            System.out.println("[IsLikeBoard]비로그인 상태");
+            log.info("[IsLikeBoard]비로그인 상태");
             return ResponseEntity.badRequest()
                     .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "로그인이 필요한 서비스입니다", null));
         }
@@ -237,7 +237,7 @@ public class BoardService {
             return ResponseEntity.ok()
                     .body(ResponseDto.response(HttpStatus.OK, "게시판 좋아요 등록에 성공하였습니다", null));
         } catch (Exception e) {
-            System.out.println("오류 메세지 : " + e.getMessage());
+            log.info("오류 메세지 : " + e.getMessage());
             return ResponseEntity.badRequest()
                     .body(ResponseDto.response(HttpStatus.BAD_REQUEST, "게시판 좋아요 등록에 실패하였습니다", null));
         }
